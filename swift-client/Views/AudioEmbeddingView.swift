@@ -1,13 +1,16 @@
 import SwiftUI
 import AVFoundation
 
-struct AudioEmbeddingView: View {
+struct AudioTrainingView: View {
     @StateObject private var networkManager = NetworkManager()
+    @State private var searchText = ""
+    @State private var searchResults: [PersonSearchResult] = []
+    @State private var isSearching = false
+    @State private var showingTraining = false
     @State private var personIndex = 1
     @State private var isRecording = false
     @State private var recordingLevel: Float = 0.0
     @State private var currentPhrase = 0
-    @State private var hasStartedTraining = false
     
     private let trainingPhrases = [
         "Hey Mira, how are you?",
@@ -18,185 +21,237 @@ struct AudioEmbeddingView: View {
     ]
     
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 40) {
-                Spacer()
-                
-                if !hasStartedTraining {
-                    // Initial Setup Screen
-                    VStack(spacing: 24) {
-                        Image(systemName: "mic.circle")
-                            .font(.system(size: 80))
-                            .foregroundColor(.green)
-                        
-                        VStack(spacing: 16) {
-                            Text("Set Up Audio Training")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                            
-                            Text("Train Mira to recognize your voice by reading a few short phrases.")
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 40)
-                        }
-                        
-                        VStack(spacing: 12) {
-                            HStack {
-                                Text("Person:")
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                
-                                Picker("Person", selection: $personIndex) {
-                                    ForEach(1...10, id: \.self) { index in
-                                        Text("Person \(index)")
-                                            .tag(index)
-                                    }
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                            }
-                        }
-                        .padding(.horizontal, 40)
-                        
-                        Button(action: {
-                            hasStartedTraining = true
-                        }) {
-                            Text("Continue")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(.green, in: RoundedRectangle(cornerRadius: 12))
-                        }
-                        .padding(.horizontal, 40)
-                    }
-                } else {
-                    // Training Screen
-                    VStack(spacing: 32) {
-                        // Progress Indicator
-                        HStack(spacing: 8) {
-                            ForEach(0..<trainingPhrases.count, id: \.self) { index in
-                                Circle()
-                                    .fill(index <= currentPhrase ? .green : .gray.opacity(0.3))
-                                    .frame(width: 12, height: 12)
-                            }
-                        }
-                        .padding(.top, 20)
-                        
-                        VStack(spacing: 16) {
-                            Text("Say the phrase")
-                                .font(.title3)
-                                .fontWeight(.medium)
-                                .foregroundColor(.secondary)
-                            
-                            Text("\"\(trainingPhrases[currentPhrase])\"")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 30)
-                        }
-                        
-                        // Microphone Visualization
-                        VStack(spacing: 20) {
-                            ZStack {
-                                Circle()
-                                    .stroke(.green.opacity(0.3), lineWidth: 3)
-                                    .frame(width: 120, height: 120)
-                                
-                                Circle()
-                                    .fill(.green.opacity(isRecording ? 0.2 : 0.1))
-                                    .frame(width: 100, height: 100)
-                                    .scaleEffect(isRecording ? 1.1 : 1.0)
-                                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isRecording)
-                                
-                                Image(systemName: "mic.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(.green)
-                            }
-                            
-                            if isRecording {
-                                VStack(spacing: 8) {
-                                    // Simple audio level bars
-                                    HStack(spacing: 4) {
-                                        ForEach(0..<5) { bar in
-                                            RoundedRectangle(cornerRadius: 2)
-                                                .fill(.green)
-                                                .frame(width: 4, height: CGFloat.random(in: 8...24))
-                                                .animation(.easeInOut(duration: 0.3).repeatForever(), value: recordingLevel)
-                                        }
-                                    }
-                                    
-                                    Text("Listening...")
-                                        .font(.subheadline)
-                                        .foregroundColor(.green)
-                                }
-                            }
-                        }
-                        
-                        // Control Buttons
-                        VStack(spacing: 16) {
-                            if !isRecording {
-                                Button(action: {
-                                    startRecording()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "mic.circle.fill")
-                                        Text("Start Recording")
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(.green, in: RoundedRectangle(cornerRadius: 12))
-                                }
-                                .padding(.horizontal, 40)
-                            } else {
-                                Button(action: {
-                                    stopRecording()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "stop.circle.fill")
-                                        Text("Stop & Continue")
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(.red, in: RoundedRectangle(cornerRadius: 12))
-                                }
-                                .padding(.horizontal, 40)
-                            }
-                            
-                            if currentPhrase > 0 {
-                                Button(action: {
-                                    currentPhrase = max(0, currentPhrase - 1)
-                                }) {
-                                    Text("Previous Phrase")
-                                        .font(.subheadline)
-                                        .foregroundColor(.green)
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                Spacer()
-                
-                // Error Message
-                if let error = networkManager.errorMessage {
-                    Text(error)
-                        .font(.subheadline)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                }
+        VStack(spacing: 20) {
+            if showingTraining {
+                trainingView
+            } else {
+                searchView
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(.systemBackground))
         }
         .onAppear {
             requestMicrophonePermission()
         }
+    }
+    
+    private var searchView: some View {
+        VStack(spacing: 24) {
+            // Header
+            VStack(spacing: 8) {
+                Text("Audio Training")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Search for existing persons or train a new voice")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            
+            // Search Bar
+            VStack(spacing: 16) {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    
+                    TextField("Search by name, index, or upload audio...", text: $searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .onSubmit {
+                            performSearch()
+                        }
+                    
+                    if isSearching {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    }
+                }
+                .padding()
+                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+                
+                // Search Results
+                if !searchResults.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Search Results")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        ForEach(searchResults) { result in
+                            PersonResultRow(result: result) {
+                                // Select this person for training
+                                personIndex = result.index
+                                showingTraining = true
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            
+            // Quick Actions
+            VStack(spacing: 12) {
+                Button("Train New Person") {
+                    personIndex = getNextAvailableIndex()
+                    showingTraining = true
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                
+                Button("Browse All Persons") {
+                    searchText = ""
+                    performSearch()
+                }
+                .buttonStyle(SecondaryButtonStyle())
+            }
+        }
+        .padding()
+    }
+    
+    private var trainingView: some View {
+        VStack(spacing: 32) {
+            // Back Button
+            HStack {
+                Button("← Back to Search") {
+                    showingTraining = false
+                    currentPhrase = 0
+                }
+                .foregroundColor(.green)
+                
+                Spacer()
+            }
+            
+            // Progress Indicator
+            HStack(spacing: 8) {
+                ForEach(0..<trainingPhrases.count, id: \.self) { index in
+                    Circle()
+                        .fill(index <= currentPhrase ? .green : .gray.opacity(0.3))
+                        .frame(width: 12, height: 12)
+                }
+            }
+            
+            VStack(spacing: 16) {
+                Text("Training Person \(personIndex)")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                
+                Text("\"\(trainingPhrases[currentPhrase])\"")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
+            }
+            
+            // Microphone Visualization
+            VStack(spacing: 20) {
+                ZStack {
+                    Circle()
+                        .stroke(.green.opacity(0.3), lineWidth: 3)
+                        .frame(width: 120, height: 120)
+                    
+                    Circle()
+                        .fill(.green.opacity(isRecording ? 0.2 : 0.1))
+                        .frame(width: 100, height: 100)
+                        .scaleEffect(isRecording ? 1.1 : 1.0)
+                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isRecording)
+                    
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(.green)
+                }
+                
+                if isRecording {
+                    VStack(spacing: 8) {
+                        // Simple audio level bars
+                        HStack(spacing: 4) {
+                            ForEach(0..<5) { bar in
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(.green)
+                                    .frame(width: 4, height: CGFloat.random(in: 8...24))
+                                    .animation(.easeInOut(duration: 0.3).repeatForever(), value: recordingLevel)
+                            }
+                        }
+                        
+                        Text("Listening...")
+                            .font(.subheadline)
+                            .foregroundColor(.green)
+                    }
+                }
+            }
+            
+            // Control Buttons
+            VStack(spacing: 16) {
+                if !isRecording {
+                    Button("Start Recording") {
+                        startRecording()
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                } else {
+                    Button("Stop & Continue") {
+                        stopRecording()
+                    }
+                    .buttonStyle(DangerButtonStyle())
+                }
+                
+                if currentPhrase > 0 {
+                    Button("Previous Phrase") {
+                        currentPhrase = max(0, currentPhrase - 1)
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                }
+            }
+            
+            // Error Message
+            if let error = networkManager.errorMessage {
+                Text(error)
+                    .font(.subheadline)
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+        }
+        .padding()
+    }
+    
+    private func performSearch() {
+        guard !searchText.isEmpty else {
+            Task {
+                await loadAllPersons()
+            }
+            return
+        }
+        
+        isSearching = true
+        
+        Task {
+            await searchPersons(query: searchText)
+            await MainActor.run {
+                isSearching = false
+            }
+        }
+    }
+    
+    private func searchPersons(query: String) async {
+        let results = await networkManager.searchPersons(query: query)
+        await MainActor.run {
+            searchResults = results
+        }
+    }
+    
+    private func loadAllPersons() async {
+        // Load all persons from backend by searching with empty query or special endpoint
+        let results = await networkManager.searchPersons(query: "")
+        await MainActor.run {
+            searchResults = results
+        }
+    }
+    
+    private func getNextAvailableIndex() -> Int {
+        let usedIndices = Set(searchResults.map { $0.index })
+        for i in 1...100 {
+            if !usedIndices.contains(i) {
+                return i
+            }
+        }
+        return 1
     }
     
     private func startRecording() {
@@ -227,7 +282,7 @@ struct AudioEmbeddingView: View {
                     currentPhrase += 1
                 } else {
                     // Training complete
-                    hasStartedTraining = false
+                    showingTraining = false
                     currentPhrase = 0
                 }
             }
@@ -245,6 +300,74 @@ struct AudioEmbeddingView: View {
     }
 }
 
+struct PersonResultRow: View {
+    let result: PersonSearchResult
+    let onSelect: () -> Void
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(result.name)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    
+                    Text("Person \(result.index) • \(Int(result.confidence * 100))% confidence")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// Custom Button Styles
+struct PrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline)
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(.green, in: RoundedRectangle(cornerRadius: 12))
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+    }
+}
+
+struct SecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline)
+            .foregroundColor(.green)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+    }
+}
+
+struct DangerButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline)
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(.red, in: RoundedRectangle(cornerRadius: 12))
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+    }
+}
+
 #Preview {
-    AudioEmbeddingView()
+    AudioTrainingView()
 }

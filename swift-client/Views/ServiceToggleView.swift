@@ -89,10 +89,6 @@ struct ServiceToggleView: View {
                     Text("Mira Assistant")
                         .font(.caption)
                         .foregroundColor(.secondary)
-
-                    Text("v1.0.0")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
                 }
                 .padding(.bottom, 40)
             }

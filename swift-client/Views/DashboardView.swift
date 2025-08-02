@@ -4,6 +4,9 @@ import Charts
 struct DashboardView: View {
     @StateObject private var networkManager = NetworkManager()
     @StateObject private var locationTracker = LocationTracker()
+    @State private var searchText = ""
+    @State private var searchResults: [InteractionSearchResult] = []
+    @State private var isSearchingInteractions = false
     
     var body: some View {
         NavigationView {
@@ -18,6 +21,54 @@ struct DashboardView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top, 20)
+                    
+                    // Audio Training Service Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Audio Training Service")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        AudioTrainingView()
+                    }
+                    .padding()
+                    .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                    
+                    // Interaction Search
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Search Interactions")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.secondary)
+                            
+                            TextField("Search interactions...", text: $searchText)
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .onSubmit {
+                                    searchInteractions()
+                                }
+                            
+                            if isSearchingInteractions {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        }
+                        .padding()
+                        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 8))
+                        
+                        if !searchResults.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(searchResults) { result in
+                                    InteractionSearchRow(result: result)
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
                     
                     // Recent Interactions
                     VStack(alignment: .leading, spacing: 16) {
@@ -153,6 +204,29 @@ struct DashboardView: View {
         }
     }
     
+    private func searchInteractions() {
+        guard !searchText.isEmpty else {
+            searchResults = []
+            return
+        }
+        
+        isSearchingInteractions = true
+        
+        Task {
+            await performInteractionSearch(query: searchText)
+            await MainActor.run {
+                isSearchingInteractions = false
+            }
+        }
+    }
+    
+    private func performInteractionSearch(query: String) async {
+        let results = await networkManager.searchInteractions(query: query)
+        await MainActor.run {
+            searchResults = results
+        }
+    }
+    
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
@@ -172,6 +246,46 @@ struct DashboardView: View {
 		} else {
 			return 0
 		}
+    }
+}
+
+struct InteractionSearchRow: View {
+    let result: InteractionSearchResult
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(result.type)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text("\(Int(result.relevance * 100))%")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Text(result.content)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .lineLimit(2)
+            
+            Text(formatDate(result.timestamp))
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 8))
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .short
+        return formatter.string(from: date)
     }
 }
 
