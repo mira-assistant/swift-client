@@ -14,6 +14,7 @@
 		1A2B3C4D5E6F7898 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F7899 /* DashboardView.swift */; };
 		1A2B3C4D5E6F789A /* ServiceToggleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F789B /* ServiceToggleView.swift */; };
 		1A2B3C4D5E6F789C /* DistanceCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F789D /* DistanceCalculator.swift */; };
+		1A2B3C4D5E6F78A2 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F78A3 /* LocationTracker.swift */; };
 		1A2B3C4D5E6F789E /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F789F /* NetworkManager.swift */; };
 		1A2B3C4D5E6F78A0 /* AudioEmbeddingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F78A1 /* AudioEmbeddingView.swift */; };
 /* End PBXBuildFile section */
@@ -27,6 +28,7 @@
 		1A2B3C4D5E6F7899 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F789B /* ServiceToggleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceToggleView.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F789D /* DistanceCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceCalculator.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F78A3 /* LocationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTracker.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F789F /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F78A1 /* AudioEmbeddingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEmbeddingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -89,10 +91,11 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		1A2B3C4D5E6F78A3 /* Services */ = {
+		1A2B3C4D5E6F78A4 /* Services */ = {
 			isa = PBXGroup;
 			children = (
 				1A2B3C4D5E6F789D /* DistanceCalculator.swift */,
+				1A2B3C4D5E6F78A3 /* LocationTracker.swift */,
 				1A2B3C4D5E6F789F /* NetworkManager.swift */,
 			);
 			path = Services;
@@ -170,6 +173,7 @@
 			files = (
 				1A2B3C4D5E6F7892 /* ContentView.swift in Sources */,
 				1A2B3C4D5E6F789C /* DistanceCalculator.swift in Sources */,
+				1A2B3C4D5E6F78A2 /* LocationTracker.swift in Sources */,
 				1A2B3C4D5E6F789E /* NetworkManager.swift in Sources */,
 				1A2B3C4D5E6F78A0 /* AudioEmbeddingView.swift in Sources */,
 				1A2B3C4D5E6F7898 /* DashboardView.swift in Sources */,

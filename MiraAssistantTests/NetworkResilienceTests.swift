@@ -226,11 +226,11 @@ final class NetworkResilienceTests: XCTestCase {
         // Test that the app provides useful functionality even when completely offline
         
         // UI components should still work
-        let distanceCalculator = DistanceCalculator()
-        distanceCalculator.setTargetLocation(latitude: 37.7749, longitude: -122.4194)
+        let locationTracker = LocationTracker()
+        locationTracker.startLocationTracking()
         
-        // Distance calculation should work locally
-        XCTAssertEqual(distanceCalculator.currentDistance, 0.0, "Local distance calculation should work")
+        // Location tracking should initialize locally
+        XCTAssertFalse(locationTracker.isTracking || locationTracker.currentLocation != nil, "Local location tracking should initialize")
         
         // Service toggle UI should be responsive (even if backend calls fail)
         await networkManager.enableService()

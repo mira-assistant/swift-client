@@ -17,7 +17,7 @@ final class UIComponentTests: XCTestCase {
     func testDashboardViewWithMockData() {
         // Test that the dashboard can handle various data states
         let networkManager = NetworkManager()
-        let distanceCalculator = DistanceCalculator()
+        let locationTracker = LocationTracker()
         
         // Test with empty interaction data
         XCTAssertTrue(networkManager.interactionData.isEmpty, "Should start with empty interaction data")
@@ -25,8 +25,9 @@ final class UIComponentTests: XCTestCase {
         // Test with service disabled state
         XCTAssertFalse(networkManager.isServiceEnabled, "Service should start disabled")
         
-        // Test with no distance calculation
-        XCTAssertEqual(distanceCalculator.currentDistance, 0.0, "Distance should start at 0")
+        // Test with no location tracking
+        XCTAssertNil(locationTracker.currentLocation, "Location should start nil")
+        XCTAssertFalse(locationTracker.isTracking, "Should not be tracking initially")
     }
     
     // MARK: - Service Toggle View Tests
@@ -248,15 +249,15 @@ final class UIComponentTests: XCTestCase {
     
     func testViewModelIntegration() {
         let networkManager = NetworkManager()
-        let distanceCalculator = DistanceCalculator()
+        let locationTracker = LocationTracker()
         
         // Test that view models can work together
         XCTAssertNotNil(networkManager, "Network manager should be available")
-        XCTAssertNotNil(distanceCalculator, "Distance calculator should be available")
+        XCTAssertNotNil(locationTracker, "Location tracker should be available")
         
         // Both should start in known states
         XCTAssertFalse(networkManager.isServiceEnabled, "Service should start disabled")
-        XCTAssertEqual(distanceCalculator.currentDistance, 0.0, "Distance should start at 0")
+        XCTAssertNil(locationTracker.currentLocation, "Location should start nil")
     }
     
     func testConcurrentViewUpdates() {

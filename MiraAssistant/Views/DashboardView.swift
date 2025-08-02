@@ -3,7 +3,7 @@ import Charts
 
 struct DashboardView: View {
     @StateObject private var networkManager = NetworkManager()
-    @StateObject private var distanceCalculator = DistanceCalculator()
+    @StateObject private var locationTracker = LocationTracker()
     
     var body: some View {
         NavigationView {
@@ -36,29 +36,89 @@ struct DashboardView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Distance Card
+                    // Location Card
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Image(systemName: "location.circle.fill")
                                 .foregroundColor(.blue)
-                            Text("Current Distance")
+                            Text("Current Location")
                                 .font(.headline)
                             Spacer()
-                            if distanceCalculator.isCalculating {
+                            if locationTracker.isTracking {
                                 ProgressView()
                                     .scaleEffect(0.8)
                             }
                         }
                         
-                        Text("\(distanceCalculator.currentDistance, specifier: "%.1f") m")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primary)
+                        if let location = locationTracker.currentLocation {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Lat: \(location.coordinate.latitude, specifier: "%.4f")")
+                                    .font(.subheadline)
+                                    .foregroundColor(.primary)
+                                Text("Lng: \(location.coordinate.longitude, specifier: "%.4f")")
+                                    .font(.subheadline)
+                                    .foregroundColor(.primary)
+                                Text("Accuracy: ±\(location.horizontalAccuracy, specifier: "%.1f")m")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            Text("Location not available")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                         
-                        if let error = distanceCalculator.errorMessage {
+                        if let error = locationTracker.errorMessage {
                             Text(error)
                                 .font(.caption)
                                 .foregroundColor(.red)
+                        }
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal)
+                    
+                    // RSSI Card
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Image(systemName: "wifi")
+                                .foregroundColor(.green)
+                            Text("Connected Clients & RSSI")
+                                .font(.headline)
+                            Spacer()
+                        }
+                        
+                        if locationTracker.connectedClients.isEmpty {
+                            VStack {
+                                Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.secondary)
+                                Text("No connected clients")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(height: 80)
+                            .frame(maxWidth: .infinity)
+                        } else {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(locationTracker.connectedClients, id: \.self) { clientId in
+                                    HStack {
+                                        Text(clientId)
+                                            .font(.subheadline)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        if let rssi = locationTracker.clientRSSI[clientId] {
+                                            Text("\(rssi, specifier: "%.0f") dBm")
+                                                .font(.caption)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 4)
+                                                .background(rssiColor(for: rssi), in: Capsule())
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                    .padding(.vertical, 2)
+                                }
+                            }
                         }
                     }
                     .padding()
@@ -123,13 +183,15 @@ struct DashboardView: View {
                         
                         HStack(spacing: 12) {
                             Button(action: {
-                                distanceCalculator.requestLocationPermission()
-                                // Set a default target location (can be made configurable)
-                                distanceCalculator.setTargetLocation(latitude: 37.7749, longitude: -122.4194)
+                                if locationTracker.isTracking {
+                                    locationTracker.stopLocationTracking()
+                                } else {
+                                    locationTracker.requestLocationPermission()
+                                }
                             }) {
                                 HStack {
-                                    Image(systemName: "location.viewfinder")
-                                    Text("Start Tracking")
+                                    Image(systemName: locationTracker.isTracking ? "location.slash" : "location.viewfinder")
+                                    Text(locationTracker.isTracking ? "Stop Tracking" : "Start Tracking")
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -169,8 +231,17 @@ struct DashboardView: View {
             await networkManager.fetchInteractionData()
         }
     }
-}
-
-#Preview {
-    DashboardView()
+    
+    private func rssiColor(for rssi: Double) -> Color {
+        switch rssi {
+        case -40...:
+            return .green
+        case -60..<(-40):
+            return .yellow
+        case -80..<(-60):
+            return .orange
+        default:
+            return .red
+        }
+    }
 }

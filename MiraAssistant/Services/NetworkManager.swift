@@ -6,9 +6,12 @@ class NetworkManager: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var interactionData: [InteractionData] = []
+    @Published var connectedClients: [String] = []
+    @Published var clientRSSI: [String: Double] = [:]
     
     private let baseURL = "https://api.mira-assistant.com" // Replace with actual backend URL
     private let session = URLSession.shared
+    private let clientId = "ios_client_\(UUID().uuidString.prefix(8))" // Unique client identifier
     
     // MARK: - Service Toggle
     
@@ -56,19 +59,62 @@ class NetworkManager: ObservableObject {
         }
     }
     
-    // MARK: - Distance Reporting
+    // MARK: - Client Discovery and RSSI
     
-    func reportDistance(_ distance: Double, from location: CLLocation) async {
-        guard let url = URL(string: baseURL + "/api/distance") else {
+    func fetchConnectedClients() async {
+        guard let url = URL(string: baseURL + "/") else {
             await setError("Invalid URL")
             return
         }
         
-        let distanceData = DistanceReport(
-            distance: distance,
-            latitude: location.coordinate.latitude,
-            longitude: location.coordinate.longitude,
-            timestamp: Date()
+        do {
+            let (data, response) = try await session.data(from: url)
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               httpResponse.statusCode == 200 {
+                
+                // Parse the root endpoint response to extract client IDs
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let clients = json["connected_clients"] as? [String: Any] {
+                    
+                    let clientIds = Array(clients.keys)
+                    await MainActor.run {
+                        self.connectedClients = clientIds
+                    }
+                    
+                    // Calculate RSSI for each client
+                    await calculateAndReportRSSI(for: clientIds)
+                }
+            } else {
+                await setError("Failed to fetch connected clients")
+            }
+        } catch {
+            await setError("Failed to fetch clients: \(error.localizedDescription)")
+        }
+    }
+    
+    private func calculateAndReportRSSI(for clientIds: [String]) async {
+        for clientId in clientIds {
+            // Simulate RSSI calculation (in real implementation, this would use actual signal strength measurement)
+            let simulatedRSSI = Double.random(in: -80...(-30)) // Typical RSSI range
+            
+            await MainActor.run {
+                self.clientRSSI[clientId] = simulatedRSSI
+            }
+            
+            await reportRSSI(simulatedRSSI, for: clientId)
+        }
+    }
+    
+    private func reportRSSI(_ rssi: Double, for clientId: String) async {
+        guard let url = URL(string: baseURL + "/streams/phone/rssi") else {
+            await setError("Invalid RSSI URL")
+            return
+        }
+        
+        let rssiData = RSSIReport(
+            client_id: self.clientId,
+            rssi: rssi
         )
         
         var request = URLRequest(url: url)
@@ -77,17 +123,52 @@ class NetworkManager: ObservableObject {
         
         do {
             let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            request.httpBody = try encoder.encode(distanceData)
+            request.httpBody = try encoder.encode(rssiData)
             
             let (_, response) = try await session.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse,
                !(200...299).contains(httpResponse.statusCode) {
-                await setError("Failed to report distance")
+                await setError("Failed to report RSSI")
             }
         } catch {
-            await setError("Failed to report distance: \(error.localizedDescription)")
+            await setError("Failed to report RSSI: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Location Reporting
+    
+    func reportLocation(_ location: CLLocation) async {
+        guard let url = URL(string: baseURL + "/streams/phone/location") else {
+            await setError("Invalid URL")
+            return
+        }
+        
+        let locationData = LocationReport(
+            client_id: clientId,
+            location: LocationData(
+                latitude: location.coordinate.latitude,
+                longitude: location.coordinate.longitude,
+                accuracy: location.horizontalAccuracy
+            )
+        )
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            let encoder = JSONEncoder()
+            request.httpBody = try encoder.encode(locationData)
+            
+            let (_, response) = try await session.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200...299).contains(httpResponse.statusCode) {
+                await setError("Failed to report location")
+            }
+        } catch {
+            await setError("Failed to report location: \(error.localizedDescription)")
         }
     }
     
@@ -178,11 +259,20 @@ class NetworkManager: ObservableObject {
 
 // MARK: - Data Models
 
-struct DistanceReport: Codable {
-    let distance: Double
+struct LocationReport: Codable {
+    let client_id: String
+    let location: LocationData
+}
+
+struct LocationData: Codable {
     let latitude: Double
     let longitude: Double
-    let timestamp: Date
+    let accuracy: Double
+}
+
+struct RSSIReport: Codable {
+    let client_id: String
+    let rssi: Double
 }
 
 struct InteractionData: Codable, Identifiable {
