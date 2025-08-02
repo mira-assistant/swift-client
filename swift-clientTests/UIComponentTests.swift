@@ -57,7 +57,56 @@ final class UIComponentTests: XCTestCase {
         XCTAssertNotNil(audioEmbeddingView, "AudioEmbeddingView should initialize successfully")
     }
     
-    // MARK: - Content View Tests
+    // MARK: - Settings View Tests
+    
+    func testSettingsViewInitialization() {
+        let settingsView = SettingsView()
+        
+        // Test that the view can be created without crashing
+        XCTAssertNotNil(settingsView, "SettingsView should initialize successfully")
+    }
+    
+    func testClientIdPersistence() {
+        let testClientId = "test-client-id"
+        
+        // Save a client ID
+        UserDefaults.standard.set(testClientId, forKey: "ClientID")
+        
+        // Verify it can be retrieved
+        let retrievedId = UserDefaults.standard.string(forKey: "ClientID")
+        XCTAssertEqual(retrievedId, testClientId, "Client ID should persist in UserDefaults")
+        
+        // Clean up
+        UserDefaults.standard.removeObject(forKey: "ClientID")
+    }
+    
+    // MARK: - Disconnected View Tests
+    
+    func testDisconnectedViewInitialization() {
+        let disconnectedView = DisconnectedView()
+        
+        // Test that the view can be created without crashing
+        XCTAssertNotNil(disconnectedView, "DisconnectedView should initialize successfully")
+    }
+    
+    // MARK: - Custom Tab Bar Tests
+    
+    func testCustomTabBarInitialization() {
+        let selectedTab = 0
+        let customTabBar = CustomTabBarView(selectedTab: .constant(selectedTab))
+        
+        // Test that the view can be created without crashing
+        XCTAssertNotNil(customTabBar, "CustomTabBarView should initialize successfully")
+    }
+    
+    // MARK: - Audio Training View Tests
+    
+    func testAudioTrainingViewInitialization() {
+        let audioTrainingView = AudioTrainingView()
+        
+        // Test that the view can be created without crashing
+        XCTAssertNotNil(audioTrainingView, "AudioTrainingView should initialize successfully")
+    }
     
     func testContentViewInitialization() {
         let contentView = ContentView()

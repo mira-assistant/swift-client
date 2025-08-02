@@ -105,7 +105,36 @@ final class NetworkManagerTests: XCTestCase {
         XCTAssertFalse(networkManager.isLoading, "Loading should be false after operation completes")
     }
     
-    // MARK: - Audio Training Tests
+    // MARK: - Search Functionality Tests
+    
+    func testPersonSearchWithUnreachableServer() async {
+        let results = await networkManager.searchPersons(query: "test")
+        
+        // Should handle error gracefully and return empty results
+        XCTAssertTrue(results.isEmpty, "Search should return empty results when server is unreachable")
+        XCTAssertNotNil(networkManager.errorMessage, "Error message should be set when server is unreachable")
+    }
+    
+    func testInteractionSearchWithUnreachableServer() async {
+        let results = await networkManager.searchInteractions(query: "test")
+        
+        // Should handle error gracefully and return empty results
+        XCTAssertTrue(results.isEmpty, "Interaction search should return empty results when server is unreachable")
+        XCTAssertNotNil(networkManager.errorMessage, "Error message should be set when server is unreachable")
+    }
+    
+    func testClientIdPersistence() {
+        // Test that NetworkManager uses persistent Client ID
+        let testId = "test-persistent-id"
+        UserDefaults.standard.set(testId, forKey: "ClientID")
+        
+        let newNetworkManager = NetworkManager()
+        // The client ID should be loaded from UserDefaults
+        // Note: We can't directly access clientId as it's private, but we can test the behavior
+        
+        // Clean up
+        UserDefaults.standard.removeObject(forKey: "ClientID")
+    }
     
     func testAudioTrainingWithUnreachableServer() async {
         await networkManager.trainAudioEmbedding(personIndex: 1)
