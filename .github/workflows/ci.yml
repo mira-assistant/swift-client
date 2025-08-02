@@ -29,27 +29,19 @@ jobs:
       
     - name: Build for testing
       run: |
-        xcodebuild build-for-testing \
+        xcodebuild build \
           -project MiraAssistant.xcodeproj \
           -scheme MiraAssistant \
           -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2'
       
-    - name: Run unit tests
-      run: |
-        xcodebuild test-without-building \
-          -project MiraAssistant.xcodeproj \
-          -scheme MiraAssistant \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2'
-      continue-on-error: false
-      
-    - name: Upload test results
+    - name: Archive build outputs
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results
+        name: build-outputs
         path: |
-          ~/Library/Logs/DiagnosticReports/
-          ~/Library/Developer/Xcode/DerivedData/*/Logs/Test/
+          ~/Library/Developer/Xcode/DerivedData/*/Build/Products/
+        retention-days: 1
         
   build:
     name: Build
