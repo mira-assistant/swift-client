@@ -1,9 +1,9 @@
-# SwiftLint Configuration for Mira Assistant iOS Client
+# SwiftLint Configuration for Mira swift Client
 
 # Paths to include during linting
 included:
-  - MiraAssistant
-  - MiraAssistantTests
+  - swift-client
+  - swift-clientTests
 
 # Paths to ignore during linting
 excluded:
