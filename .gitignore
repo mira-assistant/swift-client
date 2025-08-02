@@ -1,0 +1,26 @@
+# Xcode
+.DS_Store
+*.xcodeproj/xcuserdata/
+*.xcuserdatad/
+*.xcworkspace/xcuserdata/
+
+# Build products
+build/
+DerivedData/
+
+# Swift Package Manager (if applicable)
+.build/
+
+# Carthage (if applicable)
+Carthage/Build/
+
+# CocoaPods (if applicable)
+Pods/
+*.xcworkspace
+!*.xcworkspace/contents.xcworkspacedata # keep this file for shared schemes
+
+# User Interface State
+*.xcuserstate
+
+# Crash Logs
+*.crash
