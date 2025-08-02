@@ -1,0 +1,60 @@
+# SwiftLint Configuration for Mira Assistant iOS Client
+
+# Paths to include during linting
+included:
+  - MiraAssistant
+  - MiraAssistantTests
+
+# Paths to ignore during linting
+excluded:
+  - Carthage
+  - Pods
+  - .build
+  - DerivedData
+
+# Disabled rules
+disabled_rules:
+  - trailing_whitespace # Handled by Xcode
+  - todo # Allow TODO comments during development
+
+# Opt-in rules
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - first_where
+  - sorted_imports
+  - vertical_parameter_alignment_on_call
+
+# Rule configuration
+line_length:
+  warning: 120
+  error: 200
+
+type_body_length:
+  warning: 300
+  error: 500
+
+file_length:
+  warning: 500
+  error: 1200
+
+function_body_length:
+  warning: 50
+  error: 100
+
+# Custom rules
+custom_rules:
+  # Ensure proper spacing around operators
+  spacing_around_operators:
+    regex: '(\S)(=|\+|-|\*|/|%|<|>|!|&|\|)(\S)'
+    message: "Add spaces around operators"
+    severity: warning
+
+  # Ensure proper import organization
+  import_organization:
+    regex: '^import (?!Foundation|UIKit|SwiftUI|CoreLocation|XCTest)\w+'
+    message: "System imports should come before custom imports"
+    severity: warning
+
+# Reporter
+reporter: "xcode"
