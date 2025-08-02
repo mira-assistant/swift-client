@@ -6,210 +6,202 @@ struct AudioEmbeddingView: View {
     @State private var personIndex = 1
     @State private var isRecording = false
     @State private var recordingLevel: Float = 0.0
-    @State private var showingSettings = false
+    @State private var currentPhrase = 0
+    @State private var hasStartedTraining = false
+    
+    private let trainingPhrases = [
+        "Hey Mira, how are you?",
+        "Hey Mira, what's the weather like?",
+        "Hey Mira, play some music",
+        "Hey Mira, set a reminder",
+        "Hey Mira, what time is it?"
+    ]
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 30) {
-                // Header
-                VStack(spacing: 8) {
-                    Image(systemName: "waveform")
-                        .font(.system(size: 50))
-                        .foregroundColor(.purple)
-                    
-                    Text("Audio Training")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Text("Train personal audio embedding")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.top, 40)
-                
+        GeometryReader { geometry in
+            VStack(spacing: 40) {
                 Spacer()
                 
-                // Person Index Selection
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack {
-                        Image(systemName: "person.circle.fill")
-                            .foregroundColor(.blue)
-                        Text("Person Configuration")
-                            .font(.headline)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("Person Index:")
-                                .foregroundColor(.secondary)
-                            Spacer()
+                if !hasStartedTraining {
+                    // Initial Setup Screen
+                    VStack(spacing: 24) {
+                        Image(systemName: "mic.circle")
+                            .font(.system(size: 80))
+                            .foregroundColor(.green)
+                        
+                        VStack(spacing: 16) {
+                            Text("Set Up Audio Training")
+                                .font(.title2)
+                                .fontWeight(.semibold)
                             
-                            Picker("Person Index", selection: $personIndex) {
-                                ForEach(1...10, id: \.self) { index in
-                                    Text("Person \(index)")
-                                        .tag(index)
+                            Text("Train Mira to recognize your voice by reading a few short phrases.")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
+                        
+                        VStack(spacing: 12) {
+                            HStack {
+                                Text("Person:")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                
+                                Picker("Person", selection: $personIndex) {
+                                    ForEach(1...10, id: \.self) { index in
+                                        Text("Person \(index)")
+                                            .tag(index)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                            }
+                        }
+                        .padding(.horizontal, 40)
+                        
+                        Button(action: {
+                            hasStartedTraining = true
+                        }) {
+                            Text("Continue")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(.green, in: RoundedRectangle(cornerRadius: 12))
+                        }
+                        .padding(.horizontal, 40)
+                    }
+                } else {
+                    // Training Screen
+                    VStack(spacing: 32) {
+                        // Progress Indicator
+                        HStack(spacing: 8) {
+                            ForEach(0..<trainingPhrases.count, id: \.self) { index in
+                                Circle()
+                                    .fill(index <= currentPhrase ? .green : .gray.opacity(0.3))
+                                    .frame(width: 12, height: 12)
+                            }
+                        }
+                        .padding(.top, 20)
+                        
+                        VStack(spacing: 16) {
+                            Text("Say the phrase")
+                                .font(.title3)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                            
+                            Text("\"\(trainingPhrases[currentPhrase])\"")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 30)
+                        }
+                        
+                        // Microphone Visualization
+                        VStack(spacing: 20) {
+                            ZStack {
+                                Circle()
+                                    .stroke(.green.opacity(0.3), lineWidth: 3)
+                                    .frame(width: 120, height: 120)
+                                
+                                Circle()
+                                    .fill(.green.opacity(isRecording ? 0.2 : 0.1))
+                                    .frame(width: 100, height: 100)
+                                    .scaleEffect(isRecording ? 1.1 : 1.0)
+                                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isRecording)
+                                
+                                Image(systemName: "mic.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.green)
+                            }
+                            
+                            if isRecording {
+                                VStack(spacing: 8) {
+                                    // Simple audio level bars
+                                    HStack(spacing: 4) {
+                                        ForEach(0..<5) { bar in
+                                            RoundedRectangle(cornerRadius: 2)
+                                                .fill(.green)
+                                                .frame(width: 4, height: CGFloat.random(in: 8...24))
+                                                .animation(.easeInOut(duration: 0.3).repeatForever(), value: recordingLevel)
+                                        }
+                                    }
+                                    
+                                    Text("Listening...")
+                                        .font(.subheadline)
+                                        .foregroundColor(.green)
                                 }
                             }
-                            .pickerStyle(MenuPickerStyle())
                         }
                         
-                        Text("Default: Person 1")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        // Control Buttons
+                        VStack(spacing: 16) {
+                            if !isRecording {
+                                Button(action: {
+                                    startRecording()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "mic.circle.fill")
+                                        Text("Start Recording")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(.green, in: RoundedRectangle(cornerRadius: 12))
+                                }
+                                .padding(.horizontal, 40)
+                            } else {
+                                Button(action: {
+                                    stopRecording()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "stop.circle.fill")
+                                        Text("Stop & Continue")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(.red, in: RoundedRectangle(cornerRadius: 12))
+                                }
+                                .padding(.horizontal, 40)
+                            }
+                            
+                            if currentPhrase > 0 {
+                                Button(action: {
+                                    currentPhrase = max(0, currentPhrase - 1)
+                                }) {
+                                    Text("Previous Phrase")
+                                        .font(.subheadline)
+                                        .foregroundColor(.green)
+                                }
+                            }
+                        }
                     }
                 }
-                .padding()
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal)
                 
-                // Recording Visualization
-                VStack(spacing: 20) {
-                    HStack {
-                        Image(systemName: "mic.fill")
-                            .foregroundColor(isRecording ? .red : .gray)
-                        Text("Audio Level")
-                            .font(.headline)
-                    }
-                    
-                    // Audio level visualization
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(.gray.opacity(0.3))
-                            .frame(height: 20)
-                        
-                        HStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(.green.gradient)
-                                .frame(width: CGFloat(recordingLevel) * 250, height: 20)
-                            Spacer()
-                        }
-                    }
-                    .frame(width: 250)
-                    
-                    if isRecording {
-                        HStack {
-                            Circle()
-                                .fill(.red)
-                                .frame(width: 8, height: 8)
-                                .opacity(0.8)
-                            Text("Recording...")
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
-                    }
-                }
-                .padding()
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal)
-                
-                // Training Controls
-                VStack(spacing: 16) {
-                    Button(action: {
-                        Task {
-                            await networkManager.trainAudioEmbedding(personIndex: personIndex)
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "brain.head.profile")
-                            Text("Start Training")
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.purple.gradient, in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundColor(.white)
-                    }
-                    .disabled(networkManager.isLoading)
-                    
-                    Button(action: {
-                        toggleRecording()
-                    }) {
-                        HStack {
-                            Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                            Text(isRecording ? "Stop Recording" : "Start Recording")
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(isRecording ? .red.gradient : .blue.gradient, in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundColor(.white)
-                    }
-                    
-                    if networkManager.isLoading {
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text("Training in progress...")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                    }
-                }
-                .padding(.horizontal)
+                Spacer()
                 
                 // Error Message
                 if let error = networkManager.errorMessage {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
-                            Text("Error")
-                                .font(.headline)
-                                .foregroundColor(.orange)
-                        }
-                        
-                        Text(error)
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal)
+                    Text(error)
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
                 }
-                
-                Spacer()
-                
-                // Training Information
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.blue)
-                        Text("Training Tips")
-                            .font(.headline)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        TipRow(text: "Speak clearly and naturally")
-                        TipRow(text: "Record in a quiet environment")
-                        TipRow(text: "Provide 10-15 seconds of audio")
-                        TipRow(text: "Use consistent speaking volume")
-                    }
-                }
-                .padding()
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal)
-                
-                Spacer(minLength: 20)
             }
-            .navigationBarHidden(true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(.systemBackground))
         }
         .onAppear {
             requestMicrophonePermission()
         }
     }
     
-    private func toggleRecording() {
-        isRecording.toggle()
-        
-        if isRecording {
-            startRecording()
-        } else {
-            stopRecording()
-        }
-    }
-    
     private func startRecording() {
+        isRecording = true
+        
         // Simulate audio level changes for demo
         Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
             if !isRecording {
@@ -222,7 +214,24 @@ struct AudioEmbeddingView: View {
     }
     
     private func stopRecording() {
+        isRecording = false
         recordingLevel = 0.0
+        
+        // Submit the recording to backend
+        Task {
+            await networkManager.trainAudioEmbedding(personIndex: personIndex)
+            
+            // Move to next phrase or complete training
+            await MainActor.run {
+                if currentPhrase < trainingPhrases.count - 1 {
+                    currentPhrase += 1
+                } else {
+                    // Training complete
+                    hasStartedTraining = false
+                    currentPhrase = 0
+                }
+            }
+        }
     }
     
     private func requestMicrophonePermission() {
@@ -232,22 +241,6 @@ struct AudioEmbeddingView: View {
                     // Handle permission denied
                 }
             }
-        }
-    }
-}
-
-struct TipRow: View {
-    let text: String
-    
-    var body: some View {
-        HStack {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
-                .font(.caption)
-            Text(text)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            Spacer()
         }
     }
 }

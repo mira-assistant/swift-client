@@ -10,150 +10,94 @@ struct ServiceToggleView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 30) {
-                // Header
-                VStack(spacing: 8) {
-                    Image(systemName: "power")
-                        .font(.system(size: 50))
-                        .foregroundColor(networkManager.isServiceEnabled ? .green : .gray)
-                    
-                    Text("Service Control")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Text("Manage the Mira Assistant service")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.top, 40)
-                
+        GeometryReader { geometry in
+            VStack(spacing: 40) {
                 Spacer()
                 
-                // Service Status Card
-                VStack(spacing: 20) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Service Status")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                            
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(networkManager.isServiceEnabled ? .green : .red)
-                                    .frame(width: 12, height: 12)
-                                
-                                Text(networkManager.isServiceEnabled ? "Enabled" : "Disabled")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(networkManager.isServiceEnabled ? .green : .red)
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        Image(systemName: networkManager.isServiceEnabled ? "checkmark.circle.fill" : "xmark.circle.fill")
-                            .font(.system(size: 30))
-                            .foregroundColor(networkManager.isServiceEnabled ? .green : .red)
+                // Status Text
+                VStack(spacing: 8) {
+                    Text(statusText)
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .foregroundColor(statusColor)
+                    
+                    if !networkManager.isBackendAvailable {
+                        Text("Backend Unavailable")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
                 }
-                .padding(20)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal)
                 
-                // Control Buttons
-                VStack(spacing: 16) {
-                    if networkManager.isServiceEnabled {
-                        Button(action: {
+                // Big Circular Power Button
+                Button(action: {
+                    if networkManager.isBackendAvailable {
+                        if networkManager.isServiceEnabled {
                             pendingAction = .disable
                             showingConfirmation = true
-                        }) {
-                            HStack {
-                                Image(systemName: "stop.fill")
-                                Text("Disable Service")
-                                    .fontWeight(.semibold)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.red.gradient, in: RoundedRectangle(cornerRadius: 12))
-                            .foregroundColor(.white)
-                        }
-                        .disabled(networkManager.isLoading)
-                    } else {
-                        Button(action: {
+                        } else {
                             pendingAction = .enable
                             showingConfirmation = true
-                        }) {
-                            HStack {
-                                Image(systemName: "play.fill")
-                                Text("Enable Service")
-                                    .fontWeight(.semibold)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.green.gradient, in: RoundedRectangle(cornerRadius: 12))
-                            .foregroundColor(.white)
                         }
-                        .disabled(networkManager.isLoading)
                     }
-                    
-                    if networkManager.isLoading {
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text("Processing...")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                }) {
+                    ZStack {
+                        // Outer ring
+                        Circle()
+                            .stroke(buttonColor, lineWidth: 4)
+                            .frame(width: 180, height: 180)
+                        
+                        // Inner fill
+                        Circle()
+                            .fill(buttonColor.opacity(networkManager.isServiceEnabled ? 0.2 : 0.1))
+                            .frame(width: 160, height: 160)
+                        
+                        // Power icon
+                        Image(systemName: "power")
+                            .font(.system(size: 60, weight: .light))
+                            .foregroundColor(buttonColor)
+                        
+                        // Loading overlay
+                        if networkManager.isLoading {
+                            Circle()
+                                .stroke(Color.clear, lineWidth: 4)
+                                .frame(width: 180, height: 180)
+                                .overlay(
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                        .scaleEffect(2.0)
+                                )
                         }
-                        .padding()
                     }
                 }
-                .padding(.horizontal)
+                .disabled(networkManager.isLoading || !networkManager.isBackendAvailable)
+                .scaleEffect(networkManager.isLoading ? 0.95 : 1.0)
+                .animation(.easeInOut(duration: 0.2), value: networkManager.isLoading)
                 
                 // Error Message
                 if let error = networkManager.errorMessage {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
-                            Text("Error")
-                                .font(.headline)
-                                .foregroundColor(.orange)
-                        }
-                        
-                        Text(error)
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal)
+                    Text(error)
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
                 }
                 
                 Spacer()
                 
-                // Service Information
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.blue)
-                        Text("Service Information")
-                            .font(.headline)
-                    }
+                // Minimal Service Information
+                VStack(spacing: 8) {
+                    Text("Mira Assistant")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        InfoRow(title: "Backend URL", value: "api.mira-assistant.com")
-                        InfoRow(title: "Version", value: "1.0.0")
-                        InfoRow(title: "Last Updated", value: formatDate(Date()))
-                    }
+                    Text("v1.0.0")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
-                .padding()
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal)
-                
-                Spacer(minLength: 20)
+                .padding(.bottom, 40)
             }
-            .navigationBarHidden(true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(.systemBackground))
         }
         .confirmationDialog(
             "Confirm Action",
@@ -185,27 +129,34 @@ struct ServiceToggleView: View {
         }
     }
     
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
-}
-
-struct InfoRow: View {
-    let title: String
-    let value: String
-    
-    var body: some View {
-        HStack {
-            Text(title)
-                .foregroundColor(.secondary)
-            Spacer()
-            Text(value)
-                .fontWeight(.medium)
+    private var statusText: String {
+        if !networkManager.isBackendAvailable {
+            return "Service Unavailable"
+        } else if networkManager.isServiceEnabled {
+            return "Service Enabled"
+        } else {
+            return "Service Disabled"
         }
-        .font(.subheadline)
+    }
+    
+    private var statusColor: Color {
+        if !networkManager.isBackendAvailable {
+            return .gray
+        } else if networkManager.isServiceEnabled {
+            return .green
+        } else {
+            return .red
+        }
+    }
+    
+    private var buttonColor: Color {
+        if !networkManager.isBackendAvailable {
+            return .gray
+        } else if networkManager.isServiceEnabled {
+            return .green
+        } else {
+            return .gray
+        }
     }
 }
 

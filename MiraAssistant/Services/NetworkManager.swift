@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import UIKit
 
 class NetworkManager: ObservableObject {
     @Published var isServiceEnabled = false
@@ -8,10 +9,23 @@ class NetworkManager: ObservableObject {
     @Published var interactionData: [InteractionData] = []
     @Published var connectedClients: [String] = []
     @Published var clientRSSI: [String: Double] = [:]
+    @Published var isBackendAvailable = true
     
     private let baseURL = "https://api.mira-assistant.com" // Replace with actual backend URL
     private let session = URLSession.shared
-    private let clientId = "ios_client_\(UUID().uuidString.prefix(8))" // Unique client identifier
+    private let clientId: String
+    
+    init() {
+        // Generate client ID from device name in format like "ankurs-iphone"
+        let deviceName = UIDevice.current.name
+        self.clientId = deviceName
+            .lowercased()
+            .replacingOccurrences(of: " ", with: "-")
+            .replacingOccurrences(of: "'", with: "")
+            .replacingOccurrences(of: "'", with: "")
+            .replacingOccurrences(of: """, with: "")
+            .replacingOccurrences(of: """, with: "")
+    }
     
     // MARK: - Service Toggle
     
@@ -46,12 +60,19 @@ class NetworkManager: ObservableObject {
                httpResponse.statusCode == 200 {
                 await MainActor.run {
                     self.isServiceEnabled = enable
+                    self.isBackendAvailable = true
                 }
             } else {
                 await setError("Failed to \(enable ? "enable" : "disable") service")
+                await MainActor.run {
+                    self.isBackendAvailable = false
+                }
             }
         } catch {
             await setError(error.localizedDescription)
+            await MainActor.run {
+                self.isBackendAvailable = false
+            }
         }
         
         await MainActor.run {

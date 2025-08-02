@@ -75,6 +75,10 @@ class LocationTracker: NSObject, ObservableObject {
         rssiUpdateTimer = nil
     }
     
+    func fetchConnectedClients() async {
+        await updateClientsAndRSSI()
+    }
+    
     private func updateClientsAndRSSI() async {
         await networkManager.fetchConnectedClients()
         
