@@ -9,10 +9,11 @@ class LocationTracker: NSObject, ObservableObject {
     @Published var clientRSSI: [String: Double] = [:]
     
     private let locationManager = CLLocationManager()
-    private let networkManager = NetworkManager()
+    private let networkManager: NetworkManager
     private var rssiUpdateTimer: Timer?
     
-    override init() {
+    init(networkManager: NetworkManager) {
+        self.networkManager = networkManager
         super.init()
         setupLocationManager()
     }

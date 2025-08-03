@@ -8,16 +8,17 @@ final class UIComponentTests: XCTestCase {
     // MARK: - Dashboard View Tests
     
     func testDashboardViewInitialization() {
-        let dashboardView = DashboardView()
+        // Test that the view can be created without crashing when properly configured
+        let networkManager = NetworkManager()
+        let dashboardView = DashboardView().environmentObject(networkManager)
         
-        // Test that the view can be created without crashing
-        XCTAssertNotNil(dashboardView, "DashboardView should initialize successfully")
+        XCTAssertNotNil(dashboardView, "DashboardView should initialize successfully with environment object")
     }
     
     func testDashboardViewWithMockData() {
         // Test that the dashboard can handle various data states
         let networkManager = NetworkManager()
-        let locationTracker = LocationTracker()
+        let locationTracker = LocationTracker(networkManager: networkManager)
         
         // Test with empty interaction data
         XCTAssertTrue(networkManager.interactionData.isEmpty, "Should start with empty interaction data")
@@ -33,10 +34,11 @@ final class UIComponentTests: XCTestCase {
     // MARK: - Service Toggle View Tests
     
     func testServiceToggleViewInitialization() {
-        let serviceToggleView = ServiceToggleView()
+        let networkManager = NetworkManager()
+        let serviceToggleView = ServiceToggleView().environmentObject(networkManager)
         
         // Test that the view can be created without crashing
-        XCTAssertNotNil(serviceToggleView, "ServiceToggleView should initialize successfully")
+        XCTAssertNotNil(serviceToggleView, "ServiceToggleView should initialize successfully with environment object")
     }
     
     func testServiceToggleStates() {
@@ -51,10 +53,11 @@ final class UIComponentTests: XCTestCase {
     // MARK: - Audio Embedding View Tests
     
     func testAudioEmbeddingViewInitialization() {
-        let audioEmbeddingView = AudioEmbeddingView()
+        let networkManager = NetworkManager()
+        let audioEmbeddingView = AudioEmbeddingView().environmentObject(networkManager)
         
         // Test that the view can be created without crashing
-        XCTAssertNotNil(audioEmbeddingView, "AudioEmbeddingView should initialize successfully")
+        XCTAssertNotNil(audioEmbeddingView, "AudioEmbeddingView should initialize successfully with environment object")
     }
     
     // MARK: - Settings View Tests
@@ -93,19 +96,21 @@ final class UIComponentTests: XCTestCase {
     
     func testCustomTabBarInitialization() {
         let selectedTab = 0
-        let customTabBar = CustomTabBarView(selectedTab: .constant(selectedTab))
+        let networkManager = NetworkManager()
+        let customTabBar = CustomTabBarView(selectedTab: .constant(selectedTab)).environmentObject(networkManager)
         
         // Test that the view can be created without crashing
-        XCTAssertNotNil(customTabBar, "CustomTabBarView should initialize successfully")
+        XCTAssertNotNil(customTabBar, "CustomTabBarView should initialize successfully with environment object")
     }
     
     // MARK: - Audio Training View Tests
     
     func testAudioTrainingViewInitialization() {
-        let audioTrainingView = AudioTrainingView()
+        let networkManager = NetworkManager()
+        let audioTrainingView = AudioTrainingView().environmentObject(networkManager)
         
         // Test that the view can be created without crashing
-        XCTAssertNotNil(audioTrainingView, "AudioTrainingView should initialize successfully")
+        XCTAssertNotNil(audioTrainingView, "AudioTrainingView should initialize successfully with environment object")
     }
     
     func testContentViewInitialization() {
@@ -228,9 +233,10 @@ final class UIComponentTests: XCTestCase {
     
     func testAccessibilitySupport() {
         // Test that views support accessibility
-        let dashboardView = DashboardView()
-        let serviceToggleView = ServiceToggleView()
-        let audioEmbeddingView = AudioEmbeddingView()
+        let networkManager = NetworkManager()
+        let dashboardView = DashboardView().environmentObject(networkManager)
+        let serviceToggleView = ServiceToggleView().environmentObject(networkManager)
+        let audioEmbeddingView = AudioEmbeddingView().environmentObject(networkManager)
         
         // Views should be created successfully (basic accessibility requirement)
         XCTAssertNotNil(dashboardView, "Dashboard view should support accessibility")
@@ -243,9 +249,10 @@ final class UIComponentTests: XCTestCase {
     func testViewCreationPerformance() {
         measure {
             // Test that views can be created quickly
-            let _ = DashboardView()
-            let _ = ServiceToggleView()
-            let _ = AudioEmbeddingView()
+            let networkManager = NetworkManager()
+            let _ = DashboardView().environmentObject(networkManager)
+            let _ = ServiceToggleView().environmentObject(networkManager)
+            let _ = AudioEmbeddingView().environmentObject(networkManager)
             let _ = ContentView()
         }
     }
@@ -298,7 +305,7 @@ final class UIComponentTests: XCTestCase {
     
     func testViewModelIntegration() {
         let networkManager = NetworkManager()
-        let locationTracker = LocationTracker()
+        let locationTracker = LocationTracker(networkManager: networkManager)
         
         // Test that view models can work together
         XCTAssertNotNil(networkManager, "Network manager should be available")

@@ -8,7 +8,8 @@ final class LocationTrackerTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        locationTracker = LocationTracker()
+        let networkManager = NetworkManager()
+        locationTracker = LocationTracker(networkManager: networkManager)
     }
     
     override func tearDown() {
@@ -210,7 +211,8 @@ final class LocationTrackerTests: XCTestCase {
         weak var weakTracker: LocationTracker?
         
         autoreleasepool {
-            let tracker = LocationTracker()
+            let networkManager = NetworkManager()
+            let tracker = LocationTracker(networkManager: networkManager)
             weakTracker = tracker
             tracker.startLocationTracking()
             tracker.stopLocationTracking()

@@ -2,7 +2,7 @@ import SwiftUI
 import AVFoundation
 
 struct AudioTrainingView: View {
-    @StateObject private var networkManager = NetworkManager()
+    @EnvironmentObject var networkManager: NetworkManager
     @State private var searchText = ""
     @State private var searchResults: [PersonSearchResult] = []
     @State private var isSearching = false
@@ -370,4 +370,5 @@ struct DangerButtonStyle: ButtonStyle {
 
 #Preview {
     AudioTrainingView()
+        .environmentObject(NetworkManager())
 }

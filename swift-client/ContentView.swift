@@ -15,6 +15,7 @@ struct ContentView: View {
 					.tag(1)
 			}
 			.tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+			.environmentObject(networkManager)
 			
 			// Show disconnected overlay if backend is unavailable
 			if !networkManager.isBackendAvailable {
@@ -27,6 +28,7 @@ struct ContentView: View {
 			VStack {
 				Spacer()
 				CustomTabBarView(selectedTab: $selectedTab)
+					.environmentObject(networkManager)
 					.padding(.horizontal)
 					.padding(.bottom, 34) // Account for safe area
 			}

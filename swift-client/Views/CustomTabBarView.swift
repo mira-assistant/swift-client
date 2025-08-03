@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CustomTabBarView: View {
     @Binding var selectedTab: Int
-    @StateObject private var networkManager = NetworkManager()
+    @EnvironmentObject var networkManager: NetworkManager
     @State private var showingConfirmation = false
     @State private var pendingAction: ServiceAction?
     
@@ -144,6 +144,7 @@ struct TabBarButton: View {
     VStack {
         Spacer()
         CustomTabBarView(selectedTab: .constant(0))
+            .environmentObject(NetworkManager())
     }
     .background(Color(.systemGray6))
 }

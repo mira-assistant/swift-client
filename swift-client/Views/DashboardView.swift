@@ -2,8 +2,8 @@ import SwiftUI
 import Charts
 
 struct DashboardView: View {
-    @StateObject private var networkManager = NetworkManager()
-    @StateObject private var locationTracker = LocationTracker()
+    @EnvironmentObject var networkManager: NetworkManager
+    @State private var locationTracker: LocationTracker?
     @State private var searchText = ""
     @State private var searchResults: [InteractionSearchResult] = []
     @State private var isSearchingInteractions = false
@@ -135,7 +135,7 @@ struct DashboardView: View {
                             .font(.headline)
                             .foregroundColor(.primary)
                         
-                        if locationTracker.connectedClients.isEmpty {
+                        if locationTracker?.connectedClients.isEmpty ?? true {
                             VStack(spacing: 8) {
                                 Image(systemName: "wifi.slash")
                                     .font(.system(size: 24))
@@ -148,7 +148,7 @@ struct DashboardView: View {
                             .frame(maxWidth: .infinity)
                         } else {
                             VStack(alignment: .leading, spacing: 12) {
-                                ForEach(locationTracker.connectedClients, id: \.self) { clientId in
+                                ForEach(locationTracker?.connectedClients ?? [], id: \.self) { clientId in
                                     HStack {
                                         Circle()
                                             .fill(.green)
@@ -160,7 +160,7 @@ struct DashboardView: View {
                                         
                                         Spacer()
                                         
-                                        if let rssi = locationTracker.clientRSSI[clientId] {
+                                        if let rssi = locationTracker?.clientRSSI[clientId] {
                                             HStack(spacing: 4) {
                                                 Text("\(rssi, specifier: "%.0f")")
                                                     .font(.caption)
@@ -195,12 +195,17 @@ struct DashboardView: View {
             .navigationBarHidden(true)
             .refreshable {
                 await networkManager.fetchInteractionData()
-                await locationTracker.fetchConnectedClients()
+                await locationTracker?.fetchConnectedClients()
             }
         }
         .task {
+            // Initialize LocationTracker with shared NetworkManager
+            if locationTracker == nil {
+                locationTracker = LocationTracker(networkManager: networkManager)
+            }
+            
             await networkManager.fetchInteractionData()
-            await locationTracker.fetchConnectedClients()
+            await locationTracker?.fetchConnectedClients()
         }
     }
     
@@ -291,4 +296,5 @@ struct InteractionSearchRow: View {
 
 #Preview {
     DashboardView()
+        .environmentObject(NetworkManager())
 }

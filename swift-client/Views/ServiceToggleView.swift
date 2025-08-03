@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ServiceToggleView: View {
-    @StateObject private var networkManager = NetworkManager()
+    @EnvironmentObject var networkManager: NetworkManager
     @State private var showingConfirmation = false
     @State private var pendingAction: ServiceAction?
 
@@ -158,4 +158,5 @@ struct ServiceToggleView: View {
 
 #Preview {
     ServiceToggleView()
+        .environmentObject(NetworkManager())
 }
