@@ -10,7 +10,6 @@ targets:
       - swift-client/Assets.xcassets
       - swift-client/Preview Content
     info:
-      path: swift-client/Info.plist
       properties:
         CFBundleDisplayName: swift-client
         CFBundleIdentifier: com.ardusa.swift-client
@@ -48,7 +47,7 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
-        IPHONEOS_DEPLOYMENT_TARGET: 18.0
+        IPHONEOS_DEPLOYMENT_TARGET: 16.0
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
         MARKETING_VERSION: 4.3.0
         PRODUCT_BUNDLE_IDENTIFIER: com.ardusa.swift-client
@@ -71,7 +70,7 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         DEVELOPMENT_TEAM: 6FY4WG44Y2
         GENERATE_INFOPLIST_FILE: true
-        IPHONEOS_DEPLOYMENT_TARGET: 18.0
+        IPHONEOS_DEPLOYMENT_TARGET: 16.0
         MARKETING_VERSION: 1.0
         PRODUCT_BUNDLE_IDENTIFIER: com.ardusa.swift-clientTests
         PRODUCT_NAME: $(TARGET_NAME)
@@ -100,4 +99,4 @@ options:
   createIntermediateGroups: true
   developmentLanguage: en
   deploymentTarget:
-    iOS: 18.0
+    iOS: 16.0
