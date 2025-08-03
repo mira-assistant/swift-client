@@ -1,0 +1,33 @@
+# Exclude Xcode project files to prevent corruption
+*.xcodeproj/
+*.xcworkspace/
+*.pbxproj
+
+# Exclude build artifacts and derived data
+build/
+DerivedData/
+.build/
+
+# Exclude user-specific files
+xcuserdata/
+*.xcuserstate
+
+# Exclude macOS system files
+.DS_Store
+
+# Exclude package manager files that can be regenerated
+Pods/
+Carthage/
+Dependencies/
+.accio/
+
+# Exclude fastlane generated files
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Only focus on source code for Copilot suggestions
+*.app
+*.ipa
+*.dSYM

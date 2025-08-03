@@ -5,18 +5,26 @@ struct ContentView: View {
 
 	var body: some View {
 		TabView(selection: $selectedTab) {
-			Tab("Dashboard", systemImage: "chart.line.uptrend.xyaxis", value: 0 ) {
-				DashboardView()
-			}
+			DashboardView()
+				.tabItem {
+					Image(systemName: "chart.line.uptrend.xyaxis")
+					Text("Dashboard")
+				}
+				.tag(0)
 
-			Tab("Service", systemImage: "power.circle", value: 1) {
-				ServiceToggleView()
-			}
+			ServiceToggleView()
+				.tabItem {
+					Image(systemName: "power.circle")
+					Text("Service")
+				}
+				.tag(1)
 
-			Tab("Audio", systemImage: "mic.circle", value: 2) {
-				AudioEmbeddingView()
-			}
-
+			AudioEmbeddingView()
+				.tabItem {
+					Image(systemName: "mic.circle")
+					Text("Audio")
+				}
+				.tag(2)
 		}
 		.accentColor(.green)
 		.onAppear {
