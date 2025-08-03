@@ -63,24 +63,24 @@ jobs:
         echo "Available devices:"
         xcrun simctl list devices available
         
-        # Try to find a specific iPhone first
-        SIMULATOR=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+" | head -1 | sed -E 's/.*iPhone ([0-9]+).*/iPhone \1/')
+        # Try to find a specific iPhone first, trim whitespace
+        SIMULATOR=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+" | head -1 | sed -E 's/.*iPhone ([0-9]+).*/iPhone \1/' | xargs)
         
-        # If no specific iPhone found, try any iPhone
+        # If no specific iPhone found, try any iPhone, trim whitespace
         if [ -z "$SIMULATOR" ]; then
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+iPhone" | head -1 | sed -E 's/.*\s+(iPhone[^(]*[^[:space:]]).*/\1/')
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+iPhone" | head -1 | sed -E 's/.*\s+(iPhone[^(]*[^[:space:]]).*/\1/' | xargs)
         fi
         
-        # If still no iPhone, try any iOS device
+        # If still no iPhone, try any iOS device, trim whitespace
         if [ -z "$SIMULATOR" ]; then
           echo "No iPhone simulators found, trying any iOS device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "iOS [0-9]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/')
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "iOS [0-9]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/' | xargs)
         fi
         
-        # Final fallback - use first available device
+        # Final fallback - use first available device, trim whitespace
         if [ -z "$SIMULATOR" ]; then
           echo "No specific iOS devices found, using first available device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+[A-Za-z]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/')
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+[A-Za-z]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/' | xargs)
         fi
         
         if [ -z "$SIMULATOR" ]; then
@@ -99,7 +99,10 @@ jobs:
         xcodebuild build \
           -project swift-client.xcodeproj \
           -scheme swift-client \
-          -destination "platform=iOS Simulator,name=${{ steps.find-simulator.outputs.simulator }}"
+          -destination "platform=iOS Simulator,name=${{ steps.find-simulator.outputs.simulator }}" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          VALIDATE_DEVELOPMENT_ASSET_PATHS=NO
 
     - name: Archive build outputs
       if: always()
@@ -160,24 +163,24 @@ jobs:
         echo "Available devices:"
         xcrun simctl list devices available
         
-        # Try to find a specific iPhone first
-        SIMULATOR=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+" | head -1 | sed -E 's/.*iPhone ([0-9]+).*/iPhone \1/')
+        # Try to find a specific iPhone first, trim whitespace
+        SIMULATOR=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+" | head -1 | sed -E 's/.*iPhone ([0-9]+).*/iPhone \1/' | xargs)
         
-        # If no specific iPhone found, try any iPhone
+        # If no specific iPhone found, try any iPhone, trim whitespace
         if [ -z "$SIMULATOR" ]; then
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+iPhone" | head -1 | sed -E 's/.*\s+(iPhone[^(]*[^[:space:]]).*/\1/')
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+iPhone" | head -1 | sed -E 's/.*\s+(iPhone[^(]*[^[:space:]]).*/\1/' | xargs)
         fi
         
-        # If still no iPhone, try any iOS device
+        # If still no iPhone, try any iOS device, trim whitespace
         if [ -z "$SIMULATOR" ]; then
           echo "No iPhone simulators found, trying any iOS device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "iOS [0-9]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/')
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "iOS [0-9]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/' | xargs)
         fi
         
-        # Final fallback - use first available device
+        # Final fallback - use first available device, trim whitespace
         if [ -z "$SIMULATOR" ]; then
           echo "No specific iOS devices found, using first available device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+[A-Za-z]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/')
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+[A-Za-z]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/' | xargs)
         fi
         
         if [ -z "$SIMULATOR" ]; then
@@ -195,7 +198,8 @@ jobs:
           -scheme swift-client \
           -destination "platform=iOS Simulator,name=${{ steps.find-simulator.outputs.simulator }}" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          VALIDATE_DEVELOPMENT_ASSET_PATHS=NO
 
     - name: Build for iOS Device (if possible)
       run: |

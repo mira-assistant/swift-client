@@ -38,7 +38,7 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
         CURRENT_PROJECT_VERSION: 1
-        DEVELOPMENT_ASSET_PATHS: "swift-client/Preview Content"
+        DEVELOPMENT_ASSET_PATHS: "swift-client/Preview\\ Content"
         DEVELOPMENT_TEAM: 6FY4WG44Y2
         ENABLE_PREVIEWS: true
         GENERATE_INFOPLIST_FILE: true
@@ -98,5 +98,3 @@ options:
   bundleIdPrefix: com.ardusa
   createIntermediateGroups: true
   developmentLanguage: en
-  deploymentTarget:
-    iOS: 16.0
