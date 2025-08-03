@@ -4,80 +4,55 @@ targets:
   swift-client:
     type: application
     platform: iOS
-    sources:
-      - path: swift-client
-    resources:
-      - swift-client/Assets.xcassets
-      - swift-client/Preview Content
-    info:
-      properties:
-        CFBundleDisplayName: swift-client
-        CFBundleIdentifier: com.ardusa.swift-client
-        CFBundleVersion: 1
-        CFBundleShortVersionString: 4.3.0
-        UIApplicationSceneManifest:
-          UIApplicationSupportsMultipleScenes: false
-          UISceneConfigurations:
-            UIWindowSceneSessionRoleApplication:
-              - UISceneConfigurationName: Default Configuration
-                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
-        UIApplicationSupportsIndirectInputEvents: true
-        UILaunchScreen: {}
-        UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
-        UISupportedInterfaceOrientations~ipad:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
+    deploymentTarget: '16.0'
+    sources: 
+      - swift-client
     settings:
       base:
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        CODE_SIGN_STYLE: Automatic
-        CURRENT_PROJECT_VERSION: 1
-        DEVELOPMENT_ASSET_PATHS: "swift-client/Preview\\ Content"
+        PRODUCT_BUNDLE_IDENTIFIER: com.ardusa.swift-client
         DEVELOPMENT_TEAM: 6FY4WG44Y2
-        ENABLE_PREVIEWS: true
+        MARKETING_VERSION: 4.3.0
+        CURRENT_PROJECT_VERSION: 1
+        IPHONEOS_DEPLOYMENT_TARGET: 16.0
+        SWIFT_VERSION: 5.0
+        TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: true
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: true
         INFOPLIST_KEY_UILaunchScreen_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
-        IPHONEOS_DEPLOYMENT_TARGET: 16.0
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: true
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
-        MARKETING_VERSION: 4.3.0
-        PRODUCT_BUNDLE_IDENTIFIER: com.ardusa.swift-client
-        PRODUCT_NAME: $(TARGET_NAME)
         SWIFT_EMIT_LOC_STRINGS: true
-        SWIFT_VERSION: 5.0
-        TARGETED_DEVICE_FAMILY: "1,2"
+        PRODUCT_NAME: $(TARGET_NAME)
+        CODE_SIGN_STYLE: Automatic
 
   swift-clientTests:
     type: bundle.unit-test
     platform: iOS
+    deploymentTarget: '16.0'
     sources:
-      - path: swift-clientTests
+      - swift-clientTests
     dependencies:
       - target: swift-client
     settings:
       base:
-        BUNDLE_LOADER: $(TEST_HOST)
-        CODE_SIGN_STYLE: Automatic
-        CURRENT_PROJECT_VERSION: 1
-        DEVELOPMENT_TEAM: 6FY4WG44Y2
-        GENERATE_INFOPLIST_FILE: true
-        IPHONEOS_DEPLOYMENT_TARGET: 16.0
-        MARKETING_VERSION: 1.0
         PRODUCT_BUNDLE_IDENTIFIER: com.ardusa.swift-clientTests
-        PRODUCT_NAME: $(TARGET_NAME)
-        SWIFT_EMIT_LOC_STRINGS: false
+        DEVELOPMENT_TEAM: 6FY4WG44Y2
+        MARKETING_VERSION: 1.0
+        CURRENT_PROJECT_VERSION: 1
+        IPHONEOS_DEPLOYMENT_TARGET: 16.0
         SWIFT_VERSION: 5.0
         TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: true
+        BUNDLE_LOADER: $(TEST_HOST)
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/swift-client.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/swift-client
+        SWIFT_EMIT_LOC_STRINGS: false
+        PRODUCT_NAME: $(TARGET_NAME)
+        CODE_SIGN_STYLE: Automatic
 
 schemes:
   swift-client:
