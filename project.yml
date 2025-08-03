@@ -1,0 +1,103 @@
+name: swift-client
+
+targets:
+  swift-client:
+    type: application
+    platform: iOS
+    sources:
+      - path: swift-client
+    resources:
+      - swift-client/Assets.xcassets
+      - swift-client/Preview Content
+    info:
+      path: swift-client/Info.plist
+      properties:
+        CFBundleDisplayName: swift-client
+        CFBundleIdentifier: com.ardusa.swift-client
+        CFBundleVersion: 1
+        CFBundleShortVersionString: 4.3.0
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+        UIApplicationSupportsIndirectInputEvents: true
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+        CURRENT_PROJECT_VERSION: 1
+        DEVELOPMENT_ASSET_PATHS: "swift-client/Preview Content"
+        DEVELOPMENT_TEAM: 6FY4WG44Y2
+        ENABLE_PREVIEWS: true
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: true
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        IPHONEOS_DEPLOYMENT_TARGET: 18.0
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
+        MARKETING_VERSION: 4.3.0
+        PRODUCT_BUNDLE_IDENTIFIER: com.ardusa.swift-client
+        PRODUCT_NAME: $(TARGET_NAME)
+        SWIFT_EMIT_LOC_STRINGS: true
+        SWIFT_VERSION: 5.0
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+  swift-clientTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: swift-clientTests
+    dependencies:
+      - target: swift-client
+    settings:
+      base:
+        BUNDLE_LOADER: $(TEST_HOST)
+        CODE_SIGN_STYLE: Automatic
+        CURRENT_PROJECT_VERSION: 1
+        DEVELOPMENT_TEAM: 6FY4WG44Y2
+        GENERATE_INFOPLIST_FILE: true
+        IPHONEOS_DEPLOYMENT_TARGET: 18.0
+        MARKETING_VERSION: 1.0
+        PRODUCT_BUNDLE_IDENTIFIER: com.ardusa.swift-clientTests
+        PRODUCT_NAME: $(TARGET_NAME)
+        SWIFT_EMIT_LOC_STRINGS: false
+        SWIFT_VERSION: 5.0
+        TARGETED_DEVICE_FAMILY: "1,2"
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/swift-client.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/swift-client
+
+schemes:
+  swift-client:
+    build:
+      targets:
+        swift-client: all
+        swift-clientTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - swift-clientTests
+    archive:
+      config: Release
+
+options:
+  bundleIdPrefix: com.ardusa
+  createIntermediateGroups: true
+  developmentLanguage: en
+  deploymentTarget:
+    iOS: 18.0
