@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    name: Test
+  build-and-test:
+    name: Build and Test
     runs-on: macos-14
 
     steps:
@@ -63,128 +63,25 @@ jobs:
         echo "Available devices:"
         xcrun simctl list devices available
         
-        # Try to find a specific iPhone first, trim whitespace
-        SIMULATOR=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+" | head -1 | sed -E 's/.*iPhone ([0-9]+).*/iPhone \1/' | xargs)
+        # Find any available iPhone simulator with a more robust approach
+        SIMULATOR=$(xcrun simctl list devices available | grep -E "^\s+iPhone" | head -1 | sed -E 's/^\s+([^(]+).*/\1/' | sed 's/[[:space:]]*$//')
         
-        # If no specific iPhone found, try any iPhone, trim whitespace
+        # If no iPhone found, try iPad
         if [ -z "$SIMULATOR" ]; then
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+iPhone" | head -1 | sed -E 's/.*\s+(iPhone[^(]*[^[:space:]]).*/\1/' | xargs)
+          echo "No iPhone simulators found, trying iPad"
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "^\s+iPad" | head -1 | sed -E 's/^\s+([^(]+).*/\1/' | sed 's/[[:space:]]*$//')
         fi
         
-        # If still no iPhone, try any iOS device, trim whitespace
+        # Final fallback - use any iOS device
         if [ -z "$SIMULATOR" ]; then
-          echo "No iPhone simulators found, trying any iOS device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "iOS [0-9]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/' | xargs)
-        fi
-        
-        # Final fallback - use first available device, trim whitespace
-        if [ -z "$SIMULATOR" ]; then
-          echo "No specific iOS devices found, using first available device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+[A-Za-z]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/' | xargs)
+          echo "No iPhone/iPad found, using any iOS device"
+          SIMULATOR=$(xcrun simctl list devices available | grep -v "^--" | grep -v "^==" | grep -E "^\s+[A-Za-z]" | head -1 | sed -E 's/^\s+([^(]+).*/\1/' | sed 's/[[:space:]]*$//')
         fi
         
         if [ -z "$SIMULATOR" ]; then
           echo "No simulators found at all!"
-          exit 1
-        fi
-        
-        echo "Selected simulator: '$SIMULATOR'"
-        echo "simulator=$SIMULATOR" >> $GITHUB_OUTPUT
-
-    - name: Clean build folder
-      run: xcodebuild clean -project swift-client.xcodeproj -scheme swift-client
-
-    - name: Build for testing
-      run: |
-        xcodebuild build \
-          -project swift-client.xcodeproj \
-          -scheme swift-client \
-          -destination "platform=iOS Simulator,name=${{ steps.find-simulator.outputs.simulator }}" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          VALIDATE_DEVELOPMENT_ASSET_PATHS=NO
-
-    - name: Archive build outputs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-outputs
-        path: |
-          ~/Library/Developer/Xcode/DerivedData/*/Build/Products/
-        retention-days: 1
-
-  build:
-    name: Build
-    runs-on: macos-14
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Select Xcode version
-      run: |
-        # List available Xcode versions
-        ls /Applications/ | grep Xcode || echo "No Xcode apps found"
-        
-        # Try to use Xcode 15.2, fall back to 15.0, then any available
-        if [ -d "/Applications/Xcode_15.2.app" ]; then
-          sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
-          echo "Using Xcode 15.2"
-        elif [ -d "/Applications/Xcode_15.0.app" ]; then
-          sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer  
-          echo "Using Xcode 15.0"
-        elif [ -d "/Applications/Xcode.app" ]; then
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-          echo "Using default Xcode"
-        else
-          echo "No suitable Xcode found"
-          exit 1
-        fi
-
-    - name: Install XcodeGen
-      run: |
-        brew install xcodegen
-
-    - name: Generate Xcode project
-      run: |
-        echo "Generating Xcode project with XcodeGen..."
-        xcodegen generate
-        echo "Project generation completed"
-        ls -la *.xcodeproj 2>/dev/null || echo "No .xcodeproj found"
-
-    - name: List available schemes
-      run: |
-        echo "Available schemes:"
-        xcodebuild -project swift-client.xcodeproj -list 2>/dev/null || echo "Could not list schemes"
-
-    - name: Find available iOS simulator
-      id: find-simulator
-      run: |
-        echo "Available devices:"
-        xcrun simctl list devices available
-        
-        # Try to find a specific iPhone first, trim whitespace
-        SIMULATOR=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+" | head -1 | sed -E 's/.*iPhone ([0-9]+).*/iPhone \1/' | xargs)
-        
-        # If no specific iPhone found, try any iPhone, trim whitespace
-        if [ -z "$SIMULATOR" ]; then
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+iPhone" | head -1 | sed -E 's/.*\s+(iPhone[^(]*[^[:space:]]).*/\1/' | xargs)
-        fi
-        
-        # If still no iPhone, try any iOS device, trim whitespace
-        if [ -z "$SIMULATOR" ]; then
-          echo "No iPhone simulators found, trying any iOS device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "iOS [0-9]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/' | xargs)
-        fi
-        
-        # Final fallback - use first available device, trim whitespace
-        if [ -z "$SIMULATOR" ]; then
-          echo "No specific iOS devices found, using first available device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "\s+[A-Za-z]" | head -1 | sed -E 's/.*\s+([^(]*[^[:space:]]).*/\1/' | xargs)
-        fi
-        
-        if [ -z "$SIMULATOR" ]; then
-          echo "No simulators found at all!"
+          echo "Full device list:"
+          xcrun simctl list devices
           exit 1
         fi
         
@@ -201,6 +98,17 @@ jobs:
           CODE_SIGNING_ALLOWED=NO \
           VALIDATE_DEVELOPMENT_ASSET_PATHS=NO
 
+    - name: Run tests
+      run: |
+        xcodebuild test \
+          -project swift-client.xcodeproj \
+          -scheme swift-client \
+          -destination "platform=iOS Simulator,name=${{ steps.find-simulator.outputs.simulator }}" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          VALIDATE_DEVELOPMENT_ASSET_PATHS=NO
+      continue-on-error: true
+
     - name: Build for iOS Device (if possible)
       run: |
         xcodebuild build \
@@ -208,7 +116,8 @@ jobs:
           -scheme swift-client \
           -destination 'generic/platform=iOS' \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          VALIDATE_DEVELOPMENT_ASSET_PATHS=NO
       continue-on-error: true
 
   lint:

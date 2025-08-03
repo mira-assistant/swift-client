@@ -10,6 +10,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ardusa.swift-client
+        PRODUCT_MODULE_NAME: swift_client
         DEVELOPMENT_TEAM: 6FY4WG44Y2
         MARKETING_VERSION: 4.3.0
         CURRENT_PROJECT_VERSION: 1
