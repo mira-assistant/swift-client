@@ -63,19 +63,19 @@ jobs:
         echo "Available devices:"
         xcrun simctl list devices available
         
-        # Find any available iPhone simulator with a more robust approach
-        SIMULATOR=$(xcrun simctl list devices available | grep -E "^\s+iPhone" | head -1 | sed -E 's/^\s+([^(]+).*/\1/' | sed 's/[[:space:]]*$//')
+        # Find any available iPhone simulator with improved regex
+        SIMULATOR=$(xcrun simctl list devices available | grep -E "^\s+iPhone" | head -1 | sed -E 's/^\s+([^(]+)\s*\(.*/\1/' | sed -E 's/\s+$//')
         
         # If no iPhone found, try iPad
         if [ -z "$SIMULATOR" ]; then
           echo "No iPhone simulators found, trying iPad"
-          SIMULATOR=$(xcrun simctl list devices available | grep -E "^\s+iPad" | head -1 | sed -E 's/^\s+([^(]+).*/\1/' | sed 's/[[:space:]]*$//')
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "^\s+iPad" | head -1 | sed -E 's/^\s+([^(]+)\s*\(.*/\1/' | sed -E 's/\s+$//')
         fi
         
         # Final fallback - use any iOS device
         if [ -z "$SIMULATOR" ]; then
           echo "No iPhone/iPad found, using any iOS device"
-          SIMULATOR=$(xcrun simctl list devices available | grep -v "^--" | grep -v "^==" | grep -E "^\s+[A-Za-z]" | head -1 | sed -E 's/^\s+([^(]+).*/\1/' | sed 's/[[:space:]]*$//')
+          SIMULATOR=$(xcrun simctl list devices available | grep -v "^--" | grep -v "^==" | grep -E "^\s+[A-Za-z]" | head -1 | sed -E 's/^\s+([^(]+)\s*\(.*/\1/' | sed -E 's/\s+$//')
         fi
         
         if [ -z "$SIMULATOR" ]; then
@@ -86,6 +86,7 @@ jobs:
         fi
         
         echo "Selected simulator: '$SIMULATOR'"
+        echo "Length: ${#SIMULATOR}"
         echo "simulator=$SIMULATOR" >> $GITHUB_OUTPUT
 
     - name: Build for iOS Simulator
