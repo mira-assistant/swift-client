@@ -16,13 +16,21 @@ class NetworkManager: ObservableObject {
     private let clientId: String
     
     init() {
-        // Generate client ID from device name in format like "ankurs-iphone"
-        let deviceName = UIDevice.current.name
-        self.clientId = deviceName
-            .lowercased()
-            .replacingOccurrences(of: " ", with: "-")
-            .replacingOccurrences(of: "'", with: "")
-            .replacingOccurrences(of: "'", with: "")
+        // Load client ID from UserDefaults, generate default if not exists
+        if let savedClientId = UserDefaults.standard.string(forKey: "ClientID"), !savedClientId.isEmpty {
+            self.clientId = savedClientId
+        } else {
+            // Generate client ID from device name in format like "ankurs-iphone"
+            let deviceName = UIDevice.current.name
+            let generatedId = deviceName
+                .lowercased()
+                .replacingOccurrences(of: " ", with: "-")
+                .replacingOccurrences(of: "'", with: "")
+                .replacingOccurrences(of: "'", with: "")
+            self.clientId = generatedId
+            // Save the generated ID
+            UserDefaults.standard.set(generatedId, forKey: "ClientID")
+        }
     }
     
     // MARK: - Service Toggle
@@ -266,7 +274,74 @@ class NetworkManager: ObservableObject {
         }
     }
     
-    // MARK: - Helper Methods
+    // MARK: - Search Functions
+    
+    func searchPersons(query: String) async -> [PersonSearchResult] {
+        guard let url = URL(string: baseURL + "/search") else {
+            await setError("Invalid search URL")
+            return []
+        }
+        
+        let searchRequest = PersonSearchRequest(query: query)
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            let encoder = JSONEncoder()
+            request.httpBody = try encoder.encode(searchRequest)
+            
+            let (data, response) = try await session.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               httpResponse.statusCode == 200 {
+                let decoder = JSONDecoder()
+                let results = try decoder.decode([PersonSearchResult].self, from: data)
+                return results
+            } else {
+                await setError("Failed to search persons")
+                return []
+            }
+        } catch {
+            await setError("Failed to search: \(error.localizedDescription)")
+            return []
+        }
+    }
+    
+    func searchInteractions(query: String) async -> [InteractionSearchResult] {
+        guard let url = URL(string: baseURL + "/interactions/search") else {
+            await setError("Invalid interaction search URL")
+            return []
+        }
+        
+        let searchRequest = InteractionSearchRequest(query: query)
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            let encoder = JSONEncoder()
+            request.httpBody = try encoder.encode(searchRequest)
+            
+            let (data, response) = try await session.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               httpResponse.statusCode == 200 {
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                let results = try decoder.decode([InteractionSearchResult].self, from: data)
+                return results
+            } else {
+                await setError("Failed to search interactions")
+                return []
+            }
+        } catch {
+            await setError("Failed to search interactions: \(error.localizedDescription)")
+            return []
+        }
+    }
     
     private func setError(_ message: String) async {
         await MainActor.run {
@@ -314,4 +389,27 @@ struct InteractionData: Codable, Identifiable {
 
 struct AudioTrainingRequest: Codable {
     let personIndex: Int
+}
+
+struct PersonSearchRequest: Codable {
+    let query: String
+}
+
+struct InteractionSearchRequest: Codable {
+    let query: String
+}
+
+struct PersonSearchResult: Identifiable, Codable {
+    let id: UUID
+    let index: Int
+    let name: String
+    let confidence: Double
+}
+
+struct InteractionSearchResult: Identifiable, Codable {
+    let id: UUID
+    let type: String
+    let timestamp: Date
+    let content: String
+    let relevance: Double
 }

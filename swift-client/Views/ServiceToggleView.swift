@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ServiceToggleView: View {
-    @StateObject private var networkManager = NetworkManager()
+    @EnvironmentObject var networkManager: NetworkManager
     @State private var showingConfirmation = false
     @State private var pendingAction: ServiceAction?
 
@@ -89,10 +89,6 @@ struct ServiceToggleView: View {
                     Text("Mira Assistant")
                         .font(.caption)
                         .foregroundColor(.secondary)
-
-                    Text("v1.0.0")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
                 }
                 .padding(.bottom, 40)
             }
@@ -162,4 +158,5 @@ struct ServiceToggleView: View {
 
 #Preview {
     ServiceToggleView()
+        .environmentObject(NetworkManager())
 }
